@@ -1,8 +1,11 @@
 package com.restaurantdeliverysystem.model;
 
+/**
+ * Class representing a vendor in the food delivery system.
+ */
 public class Vendor {
 
-    private int vendorId;
+    private final int vendorId; // Primary key
     private String name;
     private String address;
     private String phoneNumber;

@@ -1,5 +1,8 @@
 package com.restaurantdeliverysystem.model;
 
+/**
+ * Class representing a customer in the food delivery system.
+ */
 public class Customer {
 
     private final int customerId; // Primary key

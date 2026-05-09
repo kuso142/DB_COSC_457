@@ -7,8 +7,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Data Access Object for Order entity.
+    Provides methods to perform CRUD operations on the orders table in the database,
+    as well as some aggregate queries for reporting. 
+*/
 public class OrderDAO {
 
+    /** Retrieves all orders from the database, ordered by order time descending. */
     public List<Order> getAllOrders() throws SQLException {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM orders ORDER BY order_time DESC";
@@ -19,6 +24,7 @@ public class OrderDAO {
         return list;
     }
 
+    /** Retrieves all orders for a specific customer, ordered by order time descending. */
     public List<Order> getByCustomer(int customerId) throws SQLException {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM orders WHERE customer_id = ? ORDER BY order_time DESC";
@@ -47,7 +53,10 @@ public class OrderDAO {
         }
         return -1;
     }
-
+    /** Updates the status of an existing order.
+     * @param orderId The ID of the order to update.
+     * @param status The new status to set (e.g., "Pending", "In Progress", "Delivered", "Cancelled").
+     */
     public void updateStatus(int orderId, String status) throws SQLException {
         String sql = "UPDATE orders SET status=? WHERE order_id=?";
         try (PreparedStatement ps = DBConnection.getConnection().prepareStatement(sql)) {
@@ -57,6 +66,7 @@ public class OrderDAO {
         }
     }
 
+    /** Deletes an order from the database by its ID. */
     public void delete(int orderId) throws SQLException {
         String sql = "DELETE FROM orders WHERE order_id = ?";
         try (PreparedStatement ps = DBConnection.getConnection().prepareStatement(sql)) {
@@ -66,7 +76,7 @@ public class OrderDAO {
     }
 
     // ----- aggregate / join queries (used in Admin panel) -----
-
+    /** Retrieves a summary of total orders and revenue by vendor and ordered by revenue. */
     public ResultSet getOrderSummaryByVendor() throws SQLException {
         String sql =
             "SELECT v.name AS vendor_name, COUNT(o.order_id) AS total_orders, " +
@@ -78,12 +88,14 @@ public class OrderDAO {
         return DBConnection.getConnection().createStatement().executeQuery(sql);
     }
 
+    /** Retrieves the count of orders grouped by their status. */
     public ResultSet getOrderCountByStatus() throws SQLException {
         String sql =
             "SELECT status, COUNT(*) AS count FROM orders GROUP BY status";
         return DBConnection.getConnection().createStatement().executeQuery(sql);
     }
 
+    /** Retrieves recent orders along with customer, vendor, and driver details for display in the admin panel. */
     public ResultSet getRecentOrdersWithDetails() throws SQLException {
         String sql =
             "SELECT o.order_id, c.first_name, c.last_name, v.name AS vendor_name, " +
@@ -98,6 +110,7 @@ public class OrderDAO {
         return DBConnection.getConnection().createStatement().executeQuery(sql);
     }
 
+    /** Retrieves the average order value and total spent for each customer, ordered by total spent. */
     public ResultSet getAvgOrderValueByCustomer() throws SQLException {
         String sql =
             "SELECT c.first_name, c.last_name, COUNT(o.order_id) AS order_count, " +
@@ -110,6 +123,7 @@ public class OrderDAO {
         return DBConnection.getConnection().createStatement().executeQuery(sql);
     }
 
+    /** Maps a ResultSet row queried from the db to an Order object. */
     private Order map(ResultSet rs) throws SQLException {
         return new Order(
             rs.getInt("order_id"),

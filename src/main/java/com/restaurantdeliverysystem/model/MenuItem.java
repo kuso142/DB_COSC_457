@@ -1,8 +1,11 @@
 package com.restaurantdeliverysystem.model;
 
+/**
+ * Class representing a menu item in the food delivery system.
+ */
 public class MenuItem {
 
-    private int itemId;
+    private final int itemId; // Primary key
     private int vendorId;
     private String itemName;
     private double price;

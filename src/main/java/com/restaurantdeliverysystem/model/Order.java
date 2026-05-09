@@ -2,6 +2,9 @@ package com.restaurantdeliverysystem.model;
 
 import java.sql.Timestamp;
 
+/**
+ * Class representing an order in the food delivery system.
+ */
 public class Order {
 
     private final int orderId; // Primary key

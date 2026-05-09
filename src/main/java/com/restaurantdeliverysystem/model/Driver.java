@@ -1,8 +1,11 @@
 package com.restaurantdeliverysystem.model;
 
+/**
+ * Class representing a driver in the food delivery system.
+ */
 public class Driver {
 
-    private int driverId;
+    private final int driverId; // Primary key
     private String firstName;
     private String lastName;
     private String phoneNumber;
