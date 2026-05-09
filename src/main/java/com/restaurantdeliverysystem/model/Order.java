@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 
 public class Order {
 
-    private int orderId;
+    private final int orderId; // Primary key
     private int customerId;
     private int vendorId;
     private int driverId;

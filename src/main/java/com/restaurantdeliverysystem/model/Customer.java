@@ -2,7 +2,7 @@ package com.restaurantdeliverysystem.model;
 
 public class Customer {
 
-    private int customerId;
+    private final int customerId; // Primary key
     private String firstName;
     private String lastName;
     private String address;
