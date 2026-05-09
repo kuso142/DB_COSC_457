@@ -1,7 +1,10 @@
 package com.restaurantdeliverysystem;
 
+import com.restaurantdeliverysystem.gui.MainFrame;
+import javax.swing.SwingUtilities;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
     }
 }
