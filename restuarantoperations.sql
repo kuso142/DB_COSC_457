@@ -7,6 +7,9 @@ SELECT * FROM menu_items;
 INSERT INTO vendors(name, address, phone_number)
 VALUES ('Subway', '6 Market Street', '555-123-4567');
 
+-- DELETE, removes subway from vendor table
+DELETE FROM vendors
+WHERE name = 'Subway';
 
 -- UPDATE, update phone number of customer 1
 UPDATE customers
@@ -23,6 +26,12 @@ FROM orders o
 JOIN customers c ON o.customer_id = c.customer_id
 JOIN drivers d ON o.driver_id = d.driver_id;
 
+-- JOIN, shows each order with customer names and restuarant name
+SELECT o.order_id, c.first_name, c.last_name, v.name AS restaurant_name, o.status
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN vendors v ON o.vendor_id = v.vendor_id;
+
 -- COUNT, count total number of drivers
 SELECT COUNT(*) AS total_drivers
 FROM drivers;
@@ -36,6 +45,11 @@ SELECT vendor_id, COUNT(*) AS total_menu_items
 FROM menu_items
 GROUP BY vendor_id;
 
+-- GROUP BY, counts how many orders each driver has delivered
+SELECT driver_id, COUNT(*) AS total_orders
+FROM orders
+GROUP BY driver_id;
+
 -- ORDER BY, shows customers ordered by last name alphabetically
 SELECT * FROM customers
 ORDER BY last_name ASC;
@@ -43,3 +57,7 @@ ORDER BY last_name ASC;
 -- WHERE, shows all orders in progress
 SELECT * FROM orders
 WHERE status = 'in progress';
+
+-- show all completed orders
+SELECT * FROM orders
+WHERE status = 'completed';
