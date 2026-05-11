@@ -12,7 +12,7 @@ public class DBConnection {
 
     private static final String URL  = "jdbc:mysql://localhost:3306/food_delivery?useSSL=false&serverTimezone=UTC"; // MySql URL with database name and timezone settings
     private static final String USER = "root"; // MySql username
-    private static final String PASS = "stuff"; // MySql password
+    private static final String PASS = "yournewpassword"; // MySql password
 
     private static Connection connection;
 

@@ -56,12 +56,12 @@ public class VendorDAO {
      * Updates an existing vendor in the database. The vendor_id must already exist.
      */
     public void update(Vendor v) throws SQLException {
-        String sql = "UPDATE vendors SET name=?, address=?, phone_number=?, WHERE vendor_id=?";
+        String sql = "UPDATE vendors SET name=?, address=?, phone_number=? WHERE vendor_id=?";
         try (PreparedStatement ps = DBConnection.getConnection().prepareStatement(sql)) {
             ps.setString(1, v.getName());
             ps.setString(2, v.getAddress());
             ps.setString(3, v.getPhoneNumber());
-            ps.setInt(5, v.getVendorId());
+            ps.setInt(4, v.getVendorId());
             ps.executeUpdate();
         }
     }

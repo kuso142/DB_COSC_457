@@ -9,8 +9,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class AdminPanel extends JPanel {
 
@@ -44,7 +44,7 @@ public class AdminPanel extends JPanel {
         if (r != null) r.run();
     }
 
-    // -------- Orders Overview --------
+    //-------- Orders Overview --------
     private JPanel buildOrdersTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"Order ID","Customer","Vendor","Driver","Rest. Status","Del. Status","Total","Time"}, 0) {
@@ -61,17 +61,16 @@ public class AdminPanel extends JPanel {
         tabLoaders[0] = () -> {
             model.setRowCount(0);
             try {
-                ResultSet rs = orderDAO.getRecentOrdersWithDetails();
-                while (rs.next()) {
+                for (Object[] r : orderDAO.getRecentOrdersWithDetails()) {
                     model.addRow(new Object[]{
-                        rs.getInt("order_id"),
-                        rs.getString("first_name") + " " + rs.getString("last_name"),
-                        rs.getString("vendor_name"),
-                        rs.getString("driver_first") + " " + rs.getString("driver_last"),
-                        rs.getString("restaurant_status"),
-                        rs.getString("delivery_status"),
-                        String.format("$%.2f", rs.getDouble("total_amount")),
-                        rs.getTimestamp("order_time")
+                        r[0],
+                        r[1] + " " + r[2],
+                        r[3],
+                        r[4] + " " + r[5],
+                        r[6],
+                        r[7],
+                        String.format("$%.2f", (double) r[8]),
+                        r[9]
                     });
                 }
             } catch (SQLException ex) { showError(ex); }
@@ -115,15 +114,15 @@ public class AdminPanel extends JPanel {
             } catch (SQLException ex) { showError(ex); }
         });
 
-        // Status count sub-panel
+        //Status count sub-panel
         JTextArea statusArea = new JTextArea(3, 30);
         statusArea.setEditable(false);
         JButton btnStatusCount = new JButton("Show Status Summary");
         btnStatusCount.addActionListener(e -> {
             try {
-                ResultSet rs = orderDAO.getOrderCountByStatus();
                 StringBuilder sb = new StringBuilder("Order Status Summary:\n");
-                while (rs.next()) sb.append("  ").append(rs.getString(1)).append(": ").append(rs.getInt(2)).append("\n");
+                for (Object[] r : orderDAO.getOrderCountByStatus())
+                    sb.append("  ").append(r[0]).append(": ").append(r[1]).append("\n");
                 statusArea.setText(sb.toString());
             } catch (SQLException ex) { showError(ex); }
         });
@@ -141,7 +140,7 @@ public class AdminPanel extends JPanel {
         return p;
     }
 
-    // -------- Revenue by Vendor --------
+    //-------- Revenue by Vendor --------
     private JPanel buildRevenueTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"Vendor","Total Orders","Total Revenue"}, 0) {
@@ -152,13 +151,8 @@ public class AdminPanel extends JPanel {
         tabLoaders[1] = () -> {
             model.setRowCount(0);
             try {
-                ResultSet rs = orderDAO.getOrderSummaryByVendor();
-                while (rs.next()) {
-                    model.addRow(new Object[]{
-                        rs.getString("vendor_name"),
-                        rs.getInt("total_orders"),
-                        String.format("$%.2f", rs.getDouble("total_revenue"))
-                    });
+                for (Object[] r : orderDAO.getOrderSummaryByVendor()) {
+                    model.addRow(new Object[]{ r[0], r[1], String.format("$%.2f", (double) r[2]) });
                 }
             } catch (SQLException ex) { showError(ex); }
         };
@@ -170,7 +164,7 @@ public class AdminPanel extends JPanel {
         return p;
     }
 
-    // -------- Customer Stats --------
+    //-------- Customer Stats --------
     private JPanel buildCustomerStatsTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"First","Last","# Orders","Avg Order Value","Total Spent"}, 0) {
@@ -181,13 +175,11 @@ public class AdminPanel extends JPanel {
         tabLoaders[2] = () -> {
             model.setRowCount(0);
             try {
-                ResultSet rs = orderDAO.getAvgOrderValueByCustomer();
-                while (rs.next()) {
+                for (Object[] r : orderDAO.getAvgOrderValueByCustomer()) {
                     model.addRow(new Object[]{
-                        rs.getString("first_name"), rs.getString("last_name"),
-                        rs.getInt("order_count"),
-                        String.format("$%.2f", rs.getDouble("avg_order_value")),
-                        String.format("$%.2f", rs.getDouble("total_spent"))
+                        r[0], r[1], r[2],
+                        String.format("$%.2f", (double) r[3]),
+                        String.format("$%.2f", (double) r[4])
                     });
                 }
             } catch (SQLException ex) { showError(ex); }
@@ -200,7 +192,7 @@ public class AdminPanel extends JPanel {
         return p;
     }
 
-    // -------- Manage Customers --------
+    //-------- Manage Customers --------
     private JPanel buildManageCustomersTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"ID","First","Last","Address","Phone","Payment"}, 0) {
@@ -268,7 +260,7 @@ public class AdminPanel extends JPanel {
         return p;
     }
 
-    // -------- Manage Drivers --------
+    //-------- Manage Drivers --------
     private JPanel buildManageDriversTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"ID","First","Last","Phone","Status"}, 0) {

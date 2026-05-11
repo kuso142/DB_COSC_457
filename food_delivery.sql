@@ -1,6 +1,5 @@
 CREATE DATABASE food_delivery;
 USE food_delivery;
-
 CREATE TABLE customers (
     customer_id INT AUTO_INCREMENT PRIMARY KEY, ##auto increment creates the ids automatically so each has a unique ID (guarenteed)
     first_name VARCHAR(50) NOT NULL,

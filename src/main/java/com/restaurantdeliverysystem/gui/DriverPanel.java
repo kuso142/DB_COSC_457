@@ -95,7 +95,7 @@ public class DriverPanel extends JPanel {
         loadAllDrivers();
     }
 
-    // ----- data loaders -----
+    //data loaders
 
     private void refreshDriverCombo() {
         Driver prev = (Driver) cbDriver.getSelectedItem();
@@ -149,7 +149,7 @@ public class DriverPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
-    // ----- actions -----
+    //actions
 
     private void addDriver() {
         JTextField tfFirst = new JTextField(12);
@@ -191,6 +191,20 @@ public class DriverPanel extends JPanel {
         int row = deliveriesTable.getSelectedRow();
         if (row < 0) { JOptionPane.showMessageDialog(this, "Select an order."); return; }
         int orderId = (int) deliveriesModel.getValueAt(row, 0);
+        String restaurantStatus = (String) deliveriesModel.getValueAt(row, 4);
+        String deliveryStatus   = (String) deliveriesModel.getValueAt(row, 5);
+        if ("delivered".equals(deliveryStatus)) {
+            JOptionPane.showMessageDialog(this,
+                "Order #" + orderId + " has already been delivered.",
+                "Already Delivered", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        if (!"ready".equals(restaurantStatus)) {
+            JOptionPane.showMessageDialog(this,
+                "Order #" + orderId + " cannot be marked delivered — the restaurant has not finished preparing it yet.",
+                "Order Not Ready", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         Driver d = (Driver) cbDriver.getSelectedItem();
         if (d == null) return;
         try {

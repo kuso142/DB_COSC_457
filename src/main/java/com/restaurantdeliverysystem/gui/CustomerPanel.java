@@ -31,7 +31,7 @@ public class CustomerPanel extends JPanel {
     private final OrderItemDAO orderItemDAO = new OrderItemDAO();
     private final DriverDAO    driverDAO    = new DriverDAO();
 
-    // Widgets
+    //Widgets
     private JComboBox<Customer>  cbCustomer;
     private JComboBox<Vendor>    cbVendor;
     private DefaultTableModel    menuModel;
@@ -42,7 +42,7 @@ public class CustomerPanel extends JPanel {
     private DefaultTableModel    ordersModel;
     private JTable               ordersTable;
 
-    // Cart state
+    //Cart state
     private final List<MenuItem> cartItems = new ArrayList<>();
     private boolean initialized = false;
 
@@ -56,7 +56,6 @@ public class CustomerPanel extends JPanel {
         initialized = true;
     }
 
-    // -------------------------------------------------------
     private JPanel buildTopBar() {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
         p.setBorder(BorderFactory.createTitledBorder("Select Customer & Restaurant"));
@@ -78,7 +77,7 @@ public class CustomerPanel extends JPanel {
     }
 
     private JSplitPane buildCenter() {
-        // ---- Menu panel ----
+        //Menu panel
         menuModel = new DefaultTableModel(new String[]{"ID","Item","Price","Description"}, 0) {
             public boolean isCellEditable(int r, int c){ return false; }
         };
@@ -95,7 +94,7 @@ public class CustomerPanel extends JPanel {
         menuPanel.add(new JScrollPane(menuTable), BorderLayout.CENTER);
         menuPanel.add(btnAddToCart, BorderLayout.SOUTH);
 
-        // ---- Cart panel ----
+        //Cart panel
         cartModel = new DefaultTableModel(new String[]{"Item","Price"}, 0) {
             public boolean isCellEditable(int r, int c){ return false; }
         };
@@ -169,7 +168,7 @@ public class CustomerPanel extends JPanel {
         refreshVendorCombo();
     }
 
-    // -------------------------------------------------------  helpers
+    //-------------------------------------------------------  helpers
 
     private void refreshCustomerCombo() {
         cbCustomer.removeAllItems();
@@ -250,7 +249,7 @@ public class CustomerPanel extends JPanel {
             if (available.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No drivers available right now."); return;
             }
-            Driver driver = available.get(0); // auto-assign first available
+            Driver driver = available.get(0); //auto-assign first available
 
             double total = cartItems.stream().mapToDouble(MenuItem::getPrice).sum();
             Order order = new Order(0, customer.getCustomerId(), vendor.getVendorId(),
@@ -354,8 +353,18 @@ public class CustomerPanel extends JPanel {
             "Cancel order #" + orderId + "?", "Confirm", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
         try {
+            //Fetch driver_id before deleting so the driver can be freed
+            int driverId = -1;
+            try (PreparedStatement ps = DBConnection.getConnection().prepareStatement(
+                    "SELECT driver_id FROM orders WHERE order_id = ?")) {
+                ps.setInt(1, orderId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) driverId = rs.getInt(1);
+                }
+            }
             orderItemDAO.deleteByOrder(orderId);
             orderDAO.delete(orderId);
+            if (driverId != -1) driverDAO.updateStatus(driverId, "available");
             loadOrderHistory();
             JOptionPane.showMessageDialog(this, "Order cancelled.");
         } catch (SQLException e) { showError(e); }

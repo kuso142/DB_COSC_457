@@ -82,8 +82,10 @@ public class OrderDAO {
     }
 
     // ----- aggregate / join queries (used in Admin panel) -----
-    /** Retrieves a summary of total orders and revenue by vendor and ordered by revenue. */
-    public ResultSet getOrderSummaryByVendor() throws SQLException {
+    // Each method closes its own Statement and ResultSet and returns a List<Object[]>.
+
+    /** Returns [vendor_name, total_orders, total_revenue] rows ordered by revenue. */
+    public List<Object[]> getOrderSummaryByVendor() throws SQLException {
         String sql =
             "SELECT v.name AS vendor_name, COUNT(o.order_id) AS total_orders, " +
             "       SUM(o.total_amount) AS total_revenue " +
@@ -91,18 +93,31 @@ public class OrderDAO {
             "JOIN vendors v ON o.vendor_id = v.vendor_id " +
             "GROUP BY v.vendor_id, v.name " +
             "ORDER BY total_revenue DESC";
-        return DBConnection.getConnection().createStatement().executeQuery(sql);
+        List<Object[]> rows = new ArrayList<>();
+        try (Statement st = DBConnection.getConnection().createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next())
+                rows.add(new Object[]{ rs.getString("vendor_name"), rs.getInt("total_orders"), rs.getDouble("total_revenue") });
+        }
+        return rows;
     }
 
-    /** Retrieves the count of orders grouped by delivery status. */
-    public ResultSet getOrderCountByStatus() throws SQLException {
+    /** Returns [status, count] rows grouped by delivery status. */
+    public List<Object[]> getOrderCountByStatus() throws SQLException {
         String sql =
             "SELECT delivery_status AS status, COUNT(*) AS count FROM orders GROUP BY delivery_status";
-        return DBConnection.getConnection().createStatement().executeQuery(sql);
+        List<Object[]> rows = new ArrayList<>();
+        try (Statement st = DBConnection.getConnection().createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next())
+                rows.add(new Object[]{ rs.getString("status"), rs.getInt("count") });
+        }
+        return rows;
     }
 
-    /** Retrieves recent orders along with customer, vendor, and driver details for display in the admin panel. */
-    public ResultSet getRecentOrdersWithDetails() throws SQLException {
+    /** Returns [order_id, first_name, last_name, vendor_name, driver_first, driver_last,
+     *           restaurant_status, delivery_status, total_amount, order_time] rows (latest 50). */
+    public List<Object[]> getRecentOrdersWithDetails() throws SQLException {
         String sql =
             "SELECT o.order_id, c.first_name, c.last_name, v.name AS vendor_name, " +
             "       d.first_name AS driver_first, d.last_name AS driver_last, " +
@@ -113,11 +128,22 @@ public class OrderDAO {
             "JOIN drivers   d ON o.driver_id   = d.driver_id " +
             "ORDER BY o.order_time DESC " +
             "LIMIT 50";
-        return DBConnection.getConnection().createStatement().executeQuery(sql);
+        List<Object[]> rows = new ArrayList<>();
+        try (Statement st = DBConnection.getConnection().createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next())
+                rows.add(new Object[]{
+                    rs.getInt("order_id"), rs.getString("first_name"), rs.getString("last_name"),
+                    rs.getString("vendor_name"), rs.getString("driver_first"), rs.getString("driver_last"),
+                    rs.getString("restaurant_status"), rs.getString("delivery_status"),
+                    rs.getDouble("total_amount"), rs.getTimestamp("order_time")
+                });
+        }
+        return rows;
     }
 
-    /** Retrieves the average order value and total spent for each customer, ordered by total spent. */
-    public ResultSet getAvgOrderValueByCustomer() throws SQLException {
+    /** Returns [first_name, last_name, order_count, avg_order_value, total_spent] rows ordered by total spent. */
+    public List<Object[]> getAvgOrderValueByCustomer() throws SQLException {
         String sql =
             "SELECT c.first_name, c.last_name, COUNT(o.order_id) AS order_count, " +
             "       AVG(o.total_amount) AS avg_order_value, " +
@@ -126,7 +152,16 @@ public class OrderDAO {
             "JOIN customers c ON o.customer_id = c.customer_id " +
             "GROUP BY c.customer_id, c.first_name, c.last_name " +
             "ORDER BY total_spent DESC";
-        return DBConnection.getConnection().createStatement().executeQuery(sql);
+        List<Object[]> rows = new ArrayList<>();
+        try (Statement st = DBConnection.getConnection().createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next())
+                rows.add(new Object[]{
+                    rs.getString("first_name"), rs.getString("last_name"),
+                    rs.getInt("order_count"), rs.getDouble("avg_order_value"), rs.getDouble("total_spent")
+                });
+        }
+        return rows;
     }
 
     /** Maps a ResultSet row queried from the db to an Order object. */

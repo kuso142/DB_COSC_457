@@ -25,8 +25,9 @@ INSERT INTO drivers
 (first_name, last_name, phone_number, status)
 VALUES
 ('Grace', 'Miller', '111-111-1111', 'available'),
-('Kailee', 'Smith', '222-222-2222', 'available'),
-('Tyler', 'Hayes', '333-333-3333', 'busy');
+('Kailee', 'Smith', '222-222-2222', 'on_delivery'),
+('Tyler', 'Hayes', '333-333-3333', 'on_delivery'),
+('Jordan', 'Lee', '444-444-4444', 'available');
 
 -- Menu Items
 INSERT INTO menu_items
@@ -43,21 +44,29 @@ VALUES
 (5, 'Chicken Bowl', 11.99, 'Cava chicken grain bowl'),
 (5, 'Pita Chips', 2.99, 'Crunchy pita chips');
 
--- Orders
+-- Orders  (restaurant_status: 'preparing' | 'ready',  delivery_status: 'pending' | 'delivered')
 INSERT INTO orders
-(customer_id, vendor_id, driver_id, status, total_amount)
+(customer_id, vendor_id, driver_id, restaurant_status, delivery_status, total_amount)
 VALUES
-(1, 1, 1, 'in progress', 12.98),
-(2, 2, 2, 'completed', 10.98);
+(1, 1, 1, 'preparing',  'pending',   12.98),  -- just placed, kitchen working on it
+(2, 2, 2, 'ready',      'pending',   10.98),  -- ready for driver pickup
+(3, 3, 3, 'ready',      'pending',   6.49),   -- ready, awaiting driver delivery
+(4, 4, 2, 'preparing',  'pending',   12.98),  -- another active order
+(5, 5, 1, 'ready',      'delivered', 14.98);  -- another completed order
 
 -- Order Items
 INSERT INTO order_items
 (order_id, item_id, quantity, unit_price)
 VALUES
-(1, 1, 1, 7.99),
-(1, 2, 1, 4.99),
-(2, 3, 1, 6.99),
-(2, 4, 1, 3.99);
+(1, 1, 1, 7.99),   -- order 1: Whopper
+(1, 2, 1, 4.99),   -- order 1: Chicken Fries
+(2, 3, 1, 6.99),   -- order 2: Big Mac
+(2, 4, 1, 3.99),   -- order 2: French Fries
+(3, 5, 1, 6.49),   -- order 3: Chicken Sandwich
+(4, 7, 1, 10.99),  -- order 4: 3 Chicken Finger Combo
+(4, 8, 1, 1.99),   -- order 4: Texas Toast
+(5, 9, 1, 11.99),  -- order 5: Chicken Bowl
+(5, 10, 1, 2.99);  -- order 5: Pita Chips
 
 #check to see if it worked
 SELECT * FROM customers;

@@ -54,7 +54,7 @@ public class VendorPanel extends JPanel {
     }
 
     private JSplitPane buildSplitCenter() {
-        // ---- Menu management ----
+        //Menu management
         menuModel = new DefaultTableModel(new String[] { "ID", "Item", "Price", "Description" }, 0) {
             public boolean isCellEditable(int r, int c) {
                 return false;
@@ -82,7 +82,7 @@ public class VendorPanel extends JPanel {
         menuPanel.add(new JScrollPane(menuTable), BorderLayout.CENTER);
         menuPanel.add(menuButtons, BorderLayout.SOUTH);
 
-        // ---- Incoming orders ----
+        //Incoming orders
         ordersModel = new DefaultTableModel(
                 new String[] { "Order ID", "Customer", "Restaurant Status", "Total", "Time" }, 0) {
             public boolean isCellEditable(int r, int c) {
@@ -115,7 +115,7 @@ public class VendorPanel extends JPanel {
         refreshVendorCombo();
     }
 
-    // ----- data loaders -----
+    //data loaders
 
     private void refreshVendorCombo() {
         cbVendor.removeAllItems();
@@ -168,7 +168,7 @@ public class VendorPanel extends JPanel {
         }
     }
 
-    // ----- actions -----
+    //actions
 
     private void addVendor() {
         JTextField tfName = new JTextField(15);
