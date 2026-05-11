@@ -1,6 +1,4 @@
 CREATE DATABASE food_delivery;
-DROP TABLE food_delivery;
-ALTER TABLE food_delivery;
 USE food_delivery;
 
 CREATE TABLE customers (
