@@ -39,13 +39,14 @@ public class OrderDAO {
 
     /** Insert a new order and return the generated order_id. */
     public int insert(Order o) throws SQLException {
-        String sql = "INSERT INTO orders (customer_id, vendor_id, driver_id, status, total_amount) VALUES (?,?,?,?,?)";
+        String sql = "INSERT INTO orders (customer_id, vendor_id, driver_id, restaurant_status, delivery_status, total_amount) VALUES (?,?,?,?,?,?)";
         try (PreparedStatement ps = DBConnection.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, o.getCustomerId());
             ps.setInt(2, o.getVendorId());
             ps.setInt(3, o.getDriverId());
-            ps.setString(4, o.getStatus());
-            ps.setDouble(5, o.getTotalAmount());
+            ps.setString(4, o.getRestaurantStatus());
+            ps.setString(5, o.getDeliveryStatus());
+            ps.setDouble(6, o.getTotalAmount());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) return keys.getInt(1);
@@ -53,12 +54,17 @@ public class OrderDAO {
         }
         return -1;
     }
-    /** Updates the status of an existing order.
-     * @param orderId The ID of the order to update.
-     * @param status The new status to set (e.g., "Pending", "In Progress", "Delivered", "Cancelled").
-     */
-    public void updateStatus(int orderId, String status) throws SQLException {
-        String sql = "UPDATE orders SET status=? WHERE order_id=?";
+    public void updateRestaurantStatus(int orderId, String status) throws SQLException {
+        String sql = "UPDATE orders SET restaurant_status=? WHERE order_id=?";
+        try (PreparedStatement ps = DBConnection.getConnection().prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, orderId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateDeliveryStatus(int orderId, String status) throws SQLException {
+        String sql = "UPDATE orders SET delivery_status=? WHERE order_id=?";
         try (PreparedStatement ps = DBConnection.getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, orderId);
@@ -88,10 +94,10 @@ public class OrderDAO {
         return DBConnection.getConnection().createStatement().executeQuery(sql);
     }
 
-    /** Retrieves the count of orders grouped by their status. */
+    /** Retrieves the count of orders grouped by delivery status. */
     public ResultSet getOrderCountByStatus() throws SQLException {
         String sql =
-            "SELECT status, COUNT(*) AS count FROM orders GROUP BY status";
+            "SELECT delivery_status AS status, COUNT(*) AS count FROM orders GROUP BY delivery_status";
         return DBConnection.getConnection().createStatement().executeQuery(sql);
     }
 
@@ -100,7 +106,7 @@ public class OrderDAO {
         String sql =
             "SELECT o.order_id, c.first_name, c.last_name, v.name AS vendor_name, " +
             "       d.first_name AS driver_first, d.last_name AS driver_last, " +
-            "       o.status, o.total_amount, o.order_time " +
+            "       o.restaurant_status, o.delivery_status, o.total_amount, o.order_time " +
             "FROM orders o " +
             "JOIN customers c ON o.customer_id = c.customer_id " +
             "JOIN vendors   v ON o.vendor_id   = v.vendor_id " +
@@ -130,7 +136,8 @@ public class OrderDAO {
             rs.getInt("customer_id"),
             rs.getInt("vendor_id"),
             rs.getInt("driver_id"),
-            rs.getString("status"),
+            rs.getString("restaurant_status"),
+            rs.getString("delivery_status"),
             rs.getTimestamp("order_time"),
             rs.getDouble("total_amount")
         );

@@ -1,4 +1,6 @@
 CREATE DATABASE food_delivery;
+DROP TABLE food_delivery;
+ALTER TABLE food_delivery;
 USE food_delivery;
 
 CREATE TABLE customers (
@@ -39,7 +41,8 @@ CREATE TABLE orders (
     customer_id INT NOT NULL,
     vendor_id INT NOT NULL,
     driver_id INT NOT NULL,
-    status VARCHAR(30) NOT NULL,
+    restaurant_status VARCHAR(30) NOT NULL DEFAULT 'preparing',
+    delivery_status VARCHAR(30) NOT NULL DEFAULT 'pending',
     order_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_amount DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id),

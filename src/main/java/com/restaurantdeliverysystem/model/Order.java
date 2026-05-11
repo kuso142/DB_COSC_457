@@ -11,26 +11,29 @@ public class Order {
     private int customerId;
     private int vendorId;
     private int driverId;
-    private String status;
+    private String restaurantStatus;
+    private String deliveryStatus;
     private Timestamp orderTime;
     private double totalAmount;
 
     public Order(int orderId, int customerId, int vendorId, int driverId,
-                 String status, Timestamp orderTime, double totalAmount) {
-        this.orderId     = orderId;
-        this.customerId  = customerId;
-        this.vendorId    = vendorId;
-        this.driverId    = driverId;
-        this.status      = status;
-        this.orderTime   = orderTime;
-        this.totalAmount = totalAmount;
+                 String restaurantStatus, String deliveryStatus, Timestamp orderTime, double totalAmount) {
+        this.orderId          = orderId;
+        this.customerId       = customerId;
+        this.vendorId         = vendorId;
+        this.driverId         = driverId;
+        this.restaurantStatus = restaurantStatus;
+        this.deliveryStatus   = deliveryStatus;
+        this.orderTime        = orderTime;
+        this.totalAmount      = totalAmount;
     }
 
-    public int       getOrderId()     { return orderId; }
-    public int       getCustomerId()  { return customerId; }
-    public int       getVendorId()    { return vendorId; }
-    public int       getDriverId()    { return driverId; }
-    public String    getStatus()      { return status; }
-    public Timestamp getOrderTime()   { return orderTime; }
-    public double    getTotalAmount() { return totalAmount; }
+    public int       getOrderId()          { return orderId; }
+    public int       getCustomerId()       { return customerId; }
+    public int       getVendorId()         { return vendorId; }
+    public int       getDriverId()         { return driverId; }
+    public String    getRestaurantStatus() { return restaurantStatus; }
+    public String    getDeliveryStatus()   { return deliveryStatus; }
+    public Timestamp getOrderTime()        { return orderTime; }
+    public double    getTotalAmount()      { return totalAmount; }
 }

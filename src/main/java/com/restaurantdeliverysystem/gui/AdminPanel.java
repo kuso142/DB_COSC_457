@@ -18,33 +18,47 @@ public class AdminPanel extends JPanel {
     private final DriverDAO   driverDAO   = new DriverDAO();
     private final OrderDAO    orderDAO    = new OrderDAO();
 
+    private JTabbedPane tabs;
+    private final Runnable[] tabLoaders = new Runnable[5];
+
     public AdminPanel() {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-        JTabbedPane tabs = new JTabbedPane();
+        tabs = new JTabbedPane();
         tabs.addTab("Orders Overview",     buildOrdersTab());
         tabs.addTab("Revenue by Vendor",   buildRevenueTab());
         tabs.addTab("Customer Stats",      buildCustomerStatsTab());
         tabs.addTab("Manage Customers",    buildManageCustomersTab());
         tabs.addTab("Manage Drivers",      buildManageDriversTab());
+        tabs.addChangeListener(e -> {
+            Runnable r = tabLoaders[tabs.getSelectedIndex()];
+            if (r != null) r.run();
+        });
         add(tabs, BorderLayout.CENTER);
+        tabLoaders[0].run();
+    }
+
+    public void refresh() {
+        Runnable r = tabLoaders[tabs.getSelectedIndex()];
+        if (r != null) r.run();
     }
 
     // -------- Orders Overview --------
     private JPanel buildOrdersTab() {
         DefaultTableModel model = new DefaultTableModel(
-            new String[]{"Order ID","Customer","Vendor","Driver","Status","Total","Time"}, 0) {
+            new String[]{"Order ID","Customer","Vendor","Driver","Rest. Status","Del. Status","Total","Time"}, 0) {
             public boolean isCellEditable(int r, int c){ return false; }
         };
         JTable table = new JTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        JButton btnLoad   = new JButton("Load All Orders");
-        JButton btnStatus = new JButton("Toggle Status");
-        JButton btnDelete = new JButton("Delete Order");
+        JButton btnLoad       = new JButton("Load All Orders");
+        JButton btnRestStatus = new JButton("Toggle Restaurant Status");
+        JButton btnDelStatus  = new JButton("Toggle Delivery Status");
+        JButton btnDelete     = new JButton("Delete Order");
 
-        btnLoad.addActionListener(e -> {
+        tabLoaders[0] = () -> {
             model.setRowCount(0);
             try {
                 ResultSet rs = orderDAO.getRecentOrdersWithDetails();
@@ -54,23 +68,37 @@ public class AdminPanel extends JPanel {
                         rs.getString("first_name") + " " + rs.getString("last_name"),
                         rs.getString("vendor_name"),
                         rs.getString("driver_first") + " " + rs.getString("driver_last"),
-                        rs.getString("status"),
+                        rs.getString("restaurant_status"),
+                        rs.getString("delivery_status"),
                         String.format("$%.2f", rs.getDouble("total_amount")),
                         rs.getTimestamp("order_time")
                     });
                 }
             } catch (SQLException ex) { showError(ex); }
-        });
+        };
+        btnLoad.addActionListener(e -> tabLoaders[0].run());
 
-        btnStatus.addActionListener(e -> {
+        btnRestStatus.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if (row < 0) { JOptionPane.showMessageDialog(null,"Select an order."); return; }
+            if (row < 0) { JOptionPane.showMessageDialog(null, "Select an order."); return; }
             int orderId = (int) model.getValueAt(row, 0);
             String cur  = (String) model.getValueAt(row, 4);
-            String next = "in progress".equals(cur) ? "completed" : "in progress";
+            String next = "ready".equals(cur) ? "preparing" : "ready";
             try {
-                orderDAO.updateStatus(orderId, next);
+                orderDAO.updateRestaurantStatus(orderId, next);
                 model.setValueAt(next, row, 4);
+            } catch (SQLException ex) { showError(ex); }
+        });
+
+        btnDelStatus.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0) { JOptionPane.showMessageDialog(null, "Select an order."); return; }
+            int orderId = (int) model.getValueAt(row, 0);
+            String cur  = (String) model.getValueAt(row, 5);
+            String next = "delivered".equals(cur) ? "pending" : "delivered";
+            try {
+                orderDAO.updateDeliveryStatus(orderId, next);
+                model.setValueAt(next, row, 5);
             } catch (SQLException ex) { showError(ex); }
         });
 
@@ -101,7 +129,7 @@ public class AdminPanel extends JPanel {
         });
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttons.add(btnLoad); buttons.add(btnStatus); buttons.add(btnDelete);
+        buttons.add(btnLoad); buttons.add(btnRestStatus); buttons.add(btnDelStatus); buttons.add(btnDelete);
         buttons.add(btnStatusCount);
 
         JPanel p = new JPanel(new BorderLayout());
@@ -121,7 +149,7 @@ public class AdminPanel extends JPanel {
         };
         JTable table = new JTable(model);
         JButton btnLoad = new JButton("Load Revenue Report");
-        btnLoad.addActionListener(e -> {
+        tabLoaders[1] = () -> {
             model.setRowCount(0);
             try {
                 ResultSet rs = orderDAO.getOrderSummaryByVendor();
@@ -133,7 +161,8 @@ public class AdminPanel extends JPanel {
                     });
                 }
             } catch (SQLException ex) { showError(ex); }
-        });
+        };
+        btnLoad.addActionListener(e -> tabLoaders[1].run());
 
         JPanel p = new JPanel(new BorderLayout());
         p.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -149,7 +178,7 @@ public class AdminPanel extends JPanel {
         };
         JTable table = new JTable(model);
         JButton btnLoad = new JButton("Load Customer Stats");
-        btnLoad.addActionListener(e -> {
+        tabLoaders[2] = () -> {
             model.setRowCount(0);
             try {
                 ResultSet rs = orderDAO.getAvgOrderValueByCustomer();
@@ -162,7 +191,8 @@ public class AdminPanel extends JPanel {
                     });
                 }
             } catch (SQLException ex) { showError(ex); }
-        });
+        };
+        btnLoad.addActionListener(e -> tabLoaders[2].run());
 
         JPanel p = new JPanel(new BorderLayout());
         p.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -179,7 +209,7 @@ public class AdminPanel extends JPanel {
         JTable table = new JTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        Runnable load = () -> {
+        tabLoaders[3] = () -> {
             model.setRowCount(0);
             try {
                 for (Customer c : customerDAO.getAllCustomers()) {
@@ -195,7 +225,7 @@ public class AdminPanel extends JPanel {
         JButton btnEdit = new JButton("Edit Selected");
         JButton btnDel  = new JButton("Delete Selected");
 
-        btnLoad.addActionListener(e -> load.run());
+        btnLoad.addActionListener(e -> tabLoaders[3].run());
         btnEdit.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) return;
@@ -216,7 +246,7 @@ public class AdminPanel extends JPanel {
             try {
                 customerDAO.update(new Customer(id, tfFirst.getText().trim(), tfLast.getText().trim(),
                                                 tfAddr.getText().trim(), tfPhone.getText().trim(), tfPay.getText().trim()));
-                load.run();
+                tabLoaders[3].run();
             } catch (SQLException ex) { showError(ex); }
         });
         btnDel.addActionListener(e -> {
@@ -225,7 +255,7 @@ public class AdminPanel extends JPanel {
             int id = (int) model.getValueAt(row, 0);
             if (JOptionPane.showConfirmDialog(null, "Delete customer #" + id + "?",
                     "Confirm", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
-            try { customerDAO.delete(id); load.run(); }
+            try { customerDAO.delete(id); tabLoaders[3].run(); }
             catch (SQLException ex) { showError(ex); }
         });
 
@@ -247,7 +277,7 @@ public class AdminPanel extends JPanel {
         JTable table = new JTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        Runnable load = () -> {
+        tabLoaders[4] = () -> {
             model.setRowCount(0);
             try {
                 for (Driver d : driverDAO.getAllDrivers()) {
@@ -263,14 +293,14 @@ public class AdminPanel extends JPanel {
         JButton btnToggle = new JButton("Toggle Status");
         JButton btnDel    = new JButton("Delete");
 
-        btnLoad.addActionListener(e -> load.run());
+        btnLoad.addActionListener(e -> tabLoaders[4].run());
         btnToggle.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) return;
             int id = (int) model.getValueAt(row, 0);
             String cur  = (String) model.getValueAt(row, 4);
             String next = "available".equals(cur) ? "on_delivery" : "available";
-            try { driverDAO.updateStatus(id, next); load.run(); }
+            try { driverDAO.updateStatus(id, next); tabLoaders[4].run(); }
             catch (SQLException ex) { showError(ex); }
         });
         btnDel.addActionListener(e -> {
@@ -279,7 +309,7 @@ public class AdminPanel extends JPanel {
             int id = (int) model.getValueAt(row, 0);
             if (JOptionPane.showConfirmDialog(null, "Delete driver #" + id + "?",
                     "Confirm", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
-            try { driverDAO.delete(id); load.run(); }
+            try { driverDAO.delete(id); tabLoaders[4].run(); }
             catch (SQLException ex) { showError(ex); }
         });
 

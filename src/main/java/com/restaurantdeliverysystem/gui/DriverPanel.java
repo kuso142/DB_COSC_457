@@ -48,7 +48,7 @@ public class DriverPanel extends JPanel {
 
     private JPanel buildCenter() {
         deliveriesModel = new DefaultTableModel(
-            new String[]{"Order ID","Customer","Vendor","Status","Total","Order Time"}, 0) {
+            new String[]{"Order ID","Customer","Delivery Address","Vendor","Rest. Status","Del. Status","Total","Order Time"}, 0) {
             public boolean isCellEditable(int r, int c){ return false; }
         };
         deliveriesTable = new JTable(deliveriesModel);
@@ -56,7 +56,7 @@ public class DriverPanel extends JPanel {
 
         JButton btnRefresh    = new JButton("Refresh");
         JButton btnMarkDone   = new JButton("Mark Delivery Complete");
-        btnRefresh.addActionListener(e -> loadDeliveries());
+        btnRefresh.addActionListener(e -> { refreshDriverCombo(); loadDeliveries(); });
         btnMarkDone.addActionListener(e -> markDeliveryComplete());
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -89,12 +89,26 @@ public class DriverPanel extends JPanel {
         return p;
     }
 
+    public void refresh() {
+        refreshDriverCombo();
+        loadDeliveries();
+        loadAllDrivers();
+    }
+
     // ----- data loaders -----
 
     private void refreshDriverCombo() {
+        Driver prev = (Driver) cbDriver.getSelectedItem();
+        int prevId = prev != null ? prev.getDriverId() : -1;
         cbDriver.removeAllItems();
-        try { for (Driver d : driverDAO.getAllDrivers()) cbDriver.addItem(d); }
-        catch (SQLException e) { showError(e); }
+        try {
+            Driver toSelect = null;
+            for (Driver d : driverDAO.getAllDrivers()) {
+                cbDriver.addItem(d);
+                if (d.getDriverId() == prevId) toSelect = d;
+            }
+            if (toSelect != null) cbDriver.setSelectedItem(toSelect);
+        } catch (SQLException e) { showError(e); }
     }
 
     private void loadDeliveries() {
@@ -103,8 +117,8 @@ public class DriverPanel extends JPanel {
         if (d == null) return;
         try {
             String sql =
-                "SELECT o.order_id, CONCAT(c.first_name,' ',c.last_name), v.name, " +
-                "       o.status, o.total_amount, o.order_time " +
+                "SELECT o.order_id, CONCAT(c.first_name,' ',c.last_name), c.address, v.name, " +
+                "       o.restaurant_status, o.delivery_status, o.total_amount, o.order_time " +
                 "FROM orders o " +
                 "JOIN customers c ON o.customer_id = c.customer_id " +
                 "JOIN vendors   v ON o.vendor_id   = v.vendor_id " +
@@ -115,8 +129,9 @@ public class DriverPanel extends JPanel {
             while (rs.next()) {
                 deliveriesModel.addRow(new Object[]{
                     rs.getInt(1), rs.getString(2), rs.getString(3),
-                    rs.getString(4), String.format("$%.2f", rs.getDouble(5)),
-                    rs.getTimestamp(6)
+                    rs.getString(4), rs.getString(5), rs.getString(6),
+                    String.format("$%.2f", rs.getDouble(7)),
+                    rs.getTimestamp(8)
                 });
             }
         } catch (SQLException e) { showError(e); }
@@ -180,14 +195,14 @@ public class DriverPanel extends JPanel {
         if (d == null) return;
         try {
             PreparedStatement ps = DBConnection.getConnection().prepareStatement(
-                "UPDATE orders SET status='completed' WHERE order_id=?");
+                "UPDATE orders SET delivery_status='delivered' WHERE order_id=?");
             ps.setInt(1, orderId);
             ps.executeUpdate();
             driverDAO.updateStatus(d.getDriverId(), "available");
             loadDeliveries();
             loadAllDrivers();
             refreshDriverCombo();
-            JOptionPane.showMessageDialog(this, "Delivery #" + orderId + " marked complete. You are now available.");
+            JOptionPane.showMessageDialog(this, "Delivery #" + orderId + " marked delivered. " + d.getFirstName() + " " + d.getLastName() + " is now available.");
         } catch (SQLException e) { showError(e); }
     }
 

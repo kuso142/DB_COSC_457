@@ -136,7 +136,7 @@ public class CustomerPanel extends JPanel {
 
     private JPanel buildOrderHistory() {
         ordersModel = new DefaultTableModel(
-            new String[]{"Order ID","Vendor","Driver","Status","Total","Time"}, 0) {
+            new String[]{"Order ID","Vendor","Driver","Rest. Status","Del. Status","Total","Time"}, 0) {
             public boolean isCellEditable(int r, int c){ return false; }
         };
         ordersTable = new JTable(ordersModel);
@@ -162,6 +162,11 @@ public class CustomerPanel extends JPanel {
         p.add(new JScrollPane(ordersTable), BorderLayout.CENTER);
         p.add(buttons, BorderLayout.SOUTH);
         return p;
+    }
+
+    public void refresh() {
+        refreshCustomerCombo();
+        refreshVendorCombo();
     }
 
     // -------------------------------------------------------  helpers
@@ -249,7 +254,7 @@ public class CustomerPanel extends JPanel {
 
             double total = cartItems.stream().mapToDouble(MenuItem::getPrice).sum();
             Order order = new Order(0, customer.getCustomerId(), vendor.getVendorId(),
-                                    driver.getDriverId(), "in progress", null, total);
+                                    driver.getDriverId(), "preparing", "pending", null, total);
             int orderId = orderDAO.insert(order);
             for (MenuItem m : cartItems) {
                 orderItemDAO.insert(orderId, m.getItemId(), 1, m.getPrice());
@@ -301,7 +306,7 @@ public class CustomerPanel extends JPanel {
         try {
             String sql =
                 "SELECT o.order_id, v.name, CONCAT(d.first_name,' ',d.last_name), " +
-                "       o.status, o.total_amount, o.order_time " +
+                "       o.restaurant_status, o.delivery_status, o.total_amount, o.order_time " +
                 "FROM orders o " +
                 "JOIN vendors v  ON o.vendor_id  = v.vendor_id " +
                 "JOIN drivers d  ON o.driver_id  = d.driver_id " +
@@ -312,8 +317,9 @@ public class CustomerPanel extends JPanel {
             while (rs.next()) {
                 ordersModel.addRow(new Object[]{
                     rs.getInt(1), rs.getString(2), rs.getString(3),
-                    rs.getString(4), String.format("$%.2f", rs.getDouble(5)),
-                    rs.getTimestamp(6)
+                    rs.getString(4), rs.getString(5),
+                    String.format("$%.2f", rs.getDouble(6)),
+                    rs.getTimestamp(7)
                 });
             }
         } catch (SQLException e) { showError(e); }
@@ -340,9 +346,9 @@ public class CustomerPanel extends JPanel {
         int row = ordersTable.getSelectedRow();
         if (row < 0) { JOptionPane.showMessageDialog(this, "Select an order."); return; }
         int orderId = (int) ordersModel.getValueAt(row, 0);
-        String status = (String) ordersModel.getValueAt(row, 3);
-        if ("completed".equals(status)) {
-            JOptionPane.showMessageDialog(this, "Cannot cancel a completed order."); return;
+        String deliveryStatus = (String) ordersModel.getValueAt(row, 4);
+        if ("delivered".equals(deliveryStatus)) {
+            JOptionPane.showMessageDialog(this, "Cannot cancel a delivered order."); return;
         }
         int confirm = JOptionPane.showConfirmDialog(this,
             "Cancel order #" + orderId + "?", "Confirm", JOptionPane.YES_NO_OPTION);

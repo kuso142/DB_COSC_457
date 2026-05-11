@@ -1,6 +1,7 @@
 package com.restaurantdeliverysystem.gui;
 
 import javax.swing.*;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 
 public class MainFrame extends JFrame {
@@ -15,10 +16,23 @@ public class MainFrame extends JFrame {
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(new Font("SansSerif", Font.BOLD, 13));
 
-        tabs.addTab("🛒  Customer",     new CustomerPanel());
-        tabs.addTab("🍽  Restaurant",   new VendorPanel());
-        tabs.addTab("🚗  Driver",       new DriverPanel());
-        tabs.addTab("⚙  Admin",         new AdminPanel());
+        CustomerPanel customerPanel = new CustomerPanel();
+        tabs.addTab("🛒  Customer",     customerPanel);
+        VendorPanel vendorPanel = new VendorPanel();
+        tabs.addTab("🍽  Restaurant",   vendorPanel);
+        DriverPanel driverPanel = new DriverPanel();
+        tabs.addTab("🚗  Driver",       driverPanel);
+        AdminPanel adminPanel = new AdminPanel();
+        tabs.addTab("⚙  Admin",         adminPanel);
+
+        tabs.addChangeListener(e -> {
+            switch (tabs.getSelectedIndex()) {
+                case 0 -> customerPanel.refresh();
+                case 1 -> vendorPanel.refresh();
+                case 2 -> driverPanel.refresh();
+                case 3 -> adminPanel.refresh();
+            }
+        });
 
         add(tabs, BorderLayout.CENTER);
 

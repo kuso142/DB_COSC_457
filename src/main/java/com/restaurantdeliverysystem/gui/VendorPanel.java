@@ -84,7 +84,7 @@ public class VendorPanel extends JPanel {
 
         // ---- Incoming orders ----
         ordersModel = new DefaultTableModel(
-                new String[] { "Order ID", "Customer", "Status", "Total", "Time" }, 0) {
+                new String[] { "Order ID", "Customer", "Restaurant Status", "Total", "Time" }, 0) {
             public boolean isCellEditable(int r, int c) {
                 return false;
             }
@@ -109,6 +109,10 @@ public class VendorPanel extends JPanel {
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, menuPanel, ordersPanel);
         split.setDividerLocation(480);
         return split;
+    }
+
+    public void refresh() {
+        refreshVendorCombo();
     }
 
     // ----- data loaders -----
@@ -147,7 +151,7 @@ public class VendorPanel extends JPanel {
             return;
         try {
             String sql = "SELECT o.order_id, CONCAT(c.first_name,' ',c.last_name), " +
-                    "       o.status, o.total_amount, o.order_time " +
+                    "       o.restaurant_status, o.total_amount, o.order_time " +
                     "FROM orders o JOIN customers c ON o.customer_id = c.customer_id " +
                     "WHERE o.vendor_id = ? ORDER BY o.order_time DESC";
             PreparedStatement ps = DBConnection.getConnection().prepareStatement(sql);
@@ -320,24 +324,12 @@ public class VendorPanel extends JPanel {
         }
         int orderId = (int) ordersModel.getValueAt(row, 0);
         try {
-            // also set driver back to available
-            String sql = "SELECT driver_id FROM orders WHERE order_id = ?";
-            PreparedStatement ps = DBConnection.getConnection().prepareStatement(sql);
+            PreparedStatement ps = DBConnection.getConnection().prepareStatement(
+                    "UPDATE orders SET restaurant_status='ready' WHERE order_id=?");
             ps.setInt(1, orderId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                int driverId = rs.getInt(1);
-                PreparedStatement upd = DBConnection.getConnection().prepareStatement(
-                        "UPDATE drivers SET status='available' WHERE driver_id=?");
-                upd.setInt(1, driverId);
-                upd.executeUpdate();
-            }
-            PreparedStatement upd2 = DBConnection.getConnection().prepareStatement(
-                    "UPDATE orders SET status='completed' WHERE order_id=?");
-            upd2.setInt(1, orderId);
-            upd2.executeUpdate();
+            ps.executeUpdate();
             loadOrders();
-            JOptionPane.showMessageDialog(this, "Order #" + orderId + " marked as completed.");
+            JOptionPane.showMessageDialog(this, "Order #" + orderId + " is ready for pickup.");
         } catch (SQLException e) {
             showError(e);
         }
