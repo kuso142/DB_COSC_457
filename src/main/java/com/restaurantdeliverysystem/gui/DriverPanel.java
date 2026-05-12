@@ -9,6 +9,16 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 
+/**
+ * Driver-facing panel for viewing assigned deliveries and managing driver records.
+ *
+ * <p>Contains three sections:
+ * <ul>
+ *   <li>Top bar — select a driver and add/remove drivers</li>
+ *   <li>Center — table of deliveries assigned to the selected driver</li>
+ *   <li>Bottom — read-only table of all drivers and their current status</li>
+ * </ul>
+ */
 public class DriverPanel extends JPanel {
 
     private final DriverDAO driverDAO = new DriverDAO();
@@ -20,6 +30,9 @@ public class DriverPanel extends JPanel {
     private JTable allDriversTable;
     private boolean initialized = false;
 
+    /**
+ * Constructs the DriverPanel and initializes all sub-panels and the driver combo box.
+ */
     public DriverPanel() {
         setLayout(new BorderLayout(5, 5));
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -89,6 +102,10 @@ public class DriverPanel extends JPanel {
         return p;
     }
 
+    /**
+ * Refreshes the driver combo box, the deliveries table, and the all-drivers table.
+ * Called automatically when the Driver tab is switched to in MainFrame.
+ */
     public void refresh() {
         refreshDriverCombo();
         loadDeliveries();
@@ -111,6 +128,9 @@ public class DriverPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Loads all orders assigned to the currently selected driver into the deliveries table.
+ */
     private void loadDeliveries() {
         deliveriesModel.setRowCount(0);
         Driver d = (Driver) cbDriver.getSelectedItem();
@@ -137,6 +157,9 @@ public class DriverPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Loads all drivers from the database into the all-drivers table.
+ */
     private void loadAllDrivers() {
         allDriversModel.setRowCount(0);
         try {
@@ -151,6 +174,10 @@ public class DriverPanel extends JPanel {
 
     //actions
 
+    /**
+ * Opens a dialog to collect new driver information and inserts the record into the database.
+ * New drivers are set to "available" status by default.
+ */
     private void addDriver() {
         JTextField tfFirst = new JTextField(12);
         JTextField tfLast  = new JTextField(12);
@@ -174,6 +201,9 @@ public class DriverPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Deletes the currently selected driver from the database after confirmation.
+ */
     private void removeDriver() {
         Driver d = (Driver) cbDriver.getSelectedItem();
         if (d == null) return;
@@ -187,6 +217,10 @@ public class DriverPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Marks the selected delivery as delivered if the restaurant has already marked it ready.
+ * Sets the assigned driver's status back to "available" on success.
+ */
     private void markDeliveryComplete() {
         int row = deliveriesTable.getSelectedRow();
         if (row < 0) { JOptionPane.showMessageDialog(this, "Select an order."); return; }

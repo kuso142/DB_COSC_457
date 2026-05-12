@@ -1,6 +1,12 @@
+-- ============================================================
+-- restuarant_sampledata.sql
+-- Sample seed data for the Multi-Vendor Food Delivery Platform
+-- COSC 457 — Database Management Systems
+-- ============================================================
+
 USE food_delivery;
 
--- Customers
+-- Sample customers with varied addresses, phone numbers, and payment methods
 INSERT INTO customers
 (first_name, last_name, address, phone_number, payment_method)
 VALUES
@@ -10,7 +16,7 @@ VALUES
 ('Zaynab', 'Tabassi', '222 South Lawson Road', '123-456-7891', 'Cash'),
 ('Nghi', 'Tran', '23 Main Drive', '987-654-3219', 'Debit Card');
 
--- Vendors
+-- Sample restaurants (vendors) operating within the city
 INSERT INTO vendors
 (name, address, phone_number)
 VALUES
@@ -20,7 +26,7 @@ VALUES
 ('Canes', '4 Food Drive', '111-111-2222'),
 ('Cava', '5 Healthy Street', '333-333-3777');
 
--- Drivers
+-- Sample drivers; status is either 'available' or 'on_delivery'
 INSERT INTO drivers
 (first_name, last_name, phone_number, status)
 VALUES
@@ -29,7 +35,8 @@ VALUES
 ('Tyler', 'Hayes', '333-333-3333', 'on_delivery'),
 ('Jordan', 'Lee', '444-444-4444', 'available');
 
--- Menu Items
+-- Sample menu items grouped by vendor.
+-- vendor_id is specified explicitly because item_id uses AUTO_INCREMENT.
 INSERT INTO menu_items
 (vendor_id, item_name, price, description) #this line is used because we are using auto increment
 VALUES
@@ -44,7 +51,9 @@ VALUES
 (5, 'Chicken Bowl', 11.99, 'Cava chicken grain bowl'),
 (5, 'Pita Chips', 2.99, 'Crunchy pita chips');
 
--- Orders  (restaurant_status: 'preparing' | 'ready',  delivery_status: 'pending' | 'delivered')
+-- Sample orders representing various stages of the delivery workflow.
+-- restaurant_status: 'preparing' = kitchen working on it | 'ready' = done, awaiting pickup
+-- delivery_status:   'pending'   = not yet delivered     | 'delivered' = completed
 INSERT INTO orders
 (customer_id, vendor_id, driver_id, restaurant_status, delivery_status, total_amount)
 VALUES
@@ -54,7 +63,8 @@ VALUES
 (4, 4, 2, 'preparing',  'pending',   12.98),  -- another active order
 (5, 5, 1, 'ready',      'delivered', 14.98);  -- another completed order
 
--- Order Items
+-- Sample order items linking each order to its menu items.
+-- unit_price is stored here to preserve the price at the time of the order.
 INSERT INTO order_items
 (order_id, item_id, quantity, unit_price)
 VALUES
@@ -68,7 +78,7 @@ VALUES
 (5, 9, 1, 11.99),  -- order 5: Chicken Bowl
 (5, 10, 1, 2.99);  -- order 5: Pita Chips
 
-#check to see if it worked
+-- Verification queries to confirm all data was inserted correctly
 SELECT * FROM customers;
 SELECT * FROM vendors;
 SELECT * FROM drivers;

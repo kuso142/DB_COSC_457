@@ -4,6 +4,19 @@ import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 
+
+/**
+ * The main application window for the Multi-Vendor Food Delivery Platform.
+ *
+ * <p>Creates a tabbed interface with four panels:
+ * <ul>
+ *   <li>Customer — browse menus, place orders, view order history</li>
+ *   <li>Restaurant (Vendor) — manage menu items and incoming orders</li>
+ *   <li>Driver — view assigned deliveries and mark them complete</li>
+ *   <li>Admin — oversee all orders, revenue, customers, and drivers</li>
+ * </ul>
+ * Each panel is refreshed automatically when its tab is selected.
+ */
 public class MainFrame extends JFrame {
 
     public MainFrame() {

@@ -12,6 +12,18 @@ import java.awt.GridLayout;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Admin panel providing a full management view of the delivery platform.
+ *
+ * <p>Contains five tabs:
+ * <ul>
+ *   <li>Orders Overview — view, update, and delete all orders</li>
+ *   <li>Revenue by Vendor — summarize total orders and revenue per restaurant</li>
+ *   <li>Customer Stats — view order counts and spending per customer</li>
+ *   <li>Manage Customers — edit or delete customer records</li>
+ *   <li>Manage Drivers — toggle driver status or remove drivers</li>
+ * </ul>
+ */
 public class AdminPanel extends JPanel {
 
     private final CustomerDAO customerDAO = new CustomerDAO();
@@ -21,6 +33,9 @@ public class AdminPanel extends JPanel {
     private JTabbedPane tabs;
     private final Runnable[] tabLoaders = new Runnable[5];
 
+    /**
+ * Constructs the AdminPanel, initializes all tabs, and loads the Orders Overview tab.
+ */
     public AdminPanel() {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -39,12 +54,23 @@ public class AdminPanel extends JPanel {
         tabLoaders[0].run();
     }
 
+    /**
+ * Reloads the data for whichever tab is currently selected.
+ * Called automatically when the Admin tab is switched to in MainFrame.
+ */
     public void refresh() {
         Runnable r = tabLoaders[tabs.getSelectedIndex()];
         if (r != null) r.run();
     }
 
     //-------- Orders Overview --------
+    /**
+ * Builds the Orders Overview tab.
+ * Displays all orders in a table with options to toggle restaurant/delivery
+ * status, delete orders, and view a status count summary.
+ *
+ * @return the fully constructed orders tab panel
+ */
     private JPanel buildOrdersTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"Order ID","Customer","Vendor","Driver","Rest. Status","Del. Status","Total","Time"}, 0) {
@@ -141,6 +167,12 @@ public class AdminPanel extends JPanel {
     }
 
     //-------- Revenue by Vendor --------
+    /**
+ * Builds the Revenue by Vendor tab.
+ * Shows each vendor alongside their total number of orders and total revenue.
+ *
+ * @return the fully constructed revenue tab panel
+ */
     private JPanel buildRevenueTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"Vendor","Total Orders","Total Revenue"}, 0) {
@@ -165,6 +197,12 @@ public class AdminPanel extends JPanel {
     }
 
     //-------- Customer Stats --------
+    /**
+ * Builds the Customer Stats tab.
+ * Displays each customer's order count, average order value, and total amount spent.
+ *
+ * @return the fully constructed customer stats tab panel
+ */
     private JPanel buildCustomerStatsTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"First","Last","# Orders","Avg Order Value","Total Spent"}, 0) {
@@ -193,6 +231,12 @@ public class AdminPanel extends JPanel {
     }
 
     //-------- Manage Customers --------
+    /**
+ * Builds the Manage Customers tab.
+ * Allows admins to view, edit, and delete customer records.
+ *
+ * @return the fully constructed manage customers tab panel
+ */
     private JPanel buildManageCustomersTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"ID","First","Last","Address","Phone","Payment"}, 0) {
@@ -261,6 +305,12 @@ public class AdminPanel extends JPanel {
     }
 
     //-------- Manage Drivers --------
+    /**
+ * Builds the Manage Drivers tab.
+ * Allows admins to view all drivers, toggle their availability status, and delete them.
+ *
+ * @return the fully constructed manage drivers tab panel
+ */
     private JPanel buildManageDriversTab() {
         DefaultTableModel model = new DefaultTableModel(
             new String[]{"ID","First","Last","Phone","Status"}, 0) {
@@ -314,6 +364,11 @@ public class AdminPanel extends JPanel {
         return p;
     }
 
+    /**
+ * Displays a database error dialog to the user.
+ *
+ * @param e the exception whose message will be shown
+ */
     private void showError(Exception e) {
         JOptionPane.showMessageDialog(this, e.getMessage(), "DB Error", JOptionPane.ERROR_MESSAGE);
         e.printStackTrace();
