@@ -21,7 +21,7 @@ DELETE FROM customers
 WHERE customer_id = 6;
 
 -- JOIN, show each order with customer first and last name and driver assigned
-SELECT o.order_id, c.first_name, d.first_name AS driver_name, o.restaurant_status, o.delviery_status
+SELECT o.order_id, c.first_name, d.first_name AS driver_name, o.restaurant_status, o.delivery_status
 FROM orders o
 JOIN customers c ON o.customer_id = c.customer_id
 JOIN drivers d ON o.driver_id = d.driver_id;
