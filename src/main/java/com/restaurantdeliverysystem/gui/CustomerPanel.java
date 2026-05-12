@@ -22,6 +22,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Customer-facing panel for browsing restaurant menus, building a cart,
+ * placing orders, and viewing order history.
+ *
+ * <p>The panel is divided into three sections:
+ * <ul>
+ *   <li>Top bar — select an active customer and restaurant</li>
+ *   <li>Center — split view of the menu and the current cart</li>
+ *   <li>Bottom — order history table with cancel and item-view options</li>
+ * </ul>
+ * A driver is automatically assigned from the available pool when an order is placed.
+ */
 public class CustomerPanel extends JPanel {
 
     private final CustomerDAO  customerDAO  = new CustomerDAO();
@@ -46,6 +58,9 @@ public class CustomerPanel extends JPanel {
     private final List<MenuItem> cartItems = new ArrayList<>();
     private boolean initialized = false;
 
+    /**
+ * Constructs the CustomerPanel and initializes all sub-panels and combo boxes.
+ */
     public CustomerPanel() {
         setLayout(new BorderLayout(5, 5));
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -163,6 +178,10 @@ public class CustomerPanel extends JPanel {
         return p;
     }
 
+    /**
+ * Refreshes the customer and vendor combo boxes.
+ * Called automatically when the Customer tab is switched to in MainFrame.
+ */
     public void refresh() {
         refreshCustomerCombo();
         refreshVendorCombo();
@@ -184,6 +203,9 @@ public class CustomerPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Loads the menu items for the currently selected vendor into the menu table.
+ */
     private void loadMenu() {
         menuModel.setRowCount(0);
         Vendor v = (Vendor) cbVendor.getSelectedItem();
@@ -198,6 +220,9 @@ public class CustomerPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Adds the selected menu item to the cart and updates the total.
+ */
     private void addToCart() {
         int row = menuTable.getSelectedRow();
         if (row < 0) { JOptionPane.showMessageDialog(this, "Select a menu item first."); return; }
@@ -216,6 +241,9 @@ public class CustomerPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Removes the selected item from the cart and updates the total.
+ */
     private void removeFromCart() {
         int row = cartTable.getSelectedRow();
         if (row < 0) return;
@@ -224,17 +252,28 @@ public class CustomerPanel extends JPanel {
         updateTotal();
     }
 
+    /**
+ * Clears all items from the cart and resets the total to $0.00.
+ */
     private void clearCart() {
         cartItems.clear();
         cartModel.setRowCount(0);
         updateTotal();
     }
 
+    /**
+ * Recalculates and displays the cart total based on current cart items.
+ */
     private void updateTotal() {
         double t = cartItems.stream().mapToDouble(MenuItem::getPrice).sum();
         lblTotal.setText(String.format("Total: $%.2f", t));
     }
 
+    /**
+ * Places an order for the selected customer and vendor using the current cart contents.
+ * Automatically assigns the first available driver and sets their status to on_delivery.
+ * Clears the cart and reloads order history on success.
+ */
     private void placeOrder() {
         Customer customer = (Customer) cbCustomer.getSelectedItem();
         Vendor   vendor   = (Vendor)   cbVendor.getSelectedItem();
@@ -268,6 +307,10 @@ public class CustomerPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Opens a dialog to collect new customer information and inserts the record into the database.
+ * Refreshes the customer combo box on success.
+ */
     private void addCustomer() {
         JTextField tfFirst   = new JTextField(12);
         JTextField tfLast    = new JTextField(12);
@@ -298,6 +341,9 @@ public class CustomerPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Loads the order history for the currently selected customer into the orders table.
+ */
     private void loadOrderHistory() {
         ordersModel.setRowCount(0);
         Customer c = (Customer) cbCustomer.getSelectedItem();
@@ -324,6 +370,9 @@ public class CustomerPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Displays the individual items belonging to the selected order in a dialog.
+ */
     private void viewOrderItems() {
         int row = ordersTable.getSelectedRow();
         if (row < 0) { JOptionPane.showMessageDialog(this, "Select an order."); return; }
@@ -341,6 +390,10 @@ public class CustomerPanel extends JPanel {
         } catch (SQLException e) { showError(e); }
     }
 
+    /**
+ * Cancels the selected order if it has not already been delivered.
+ * Deletes the order and its items from the database and frees the assigned driver.
+ */
     private void cancelOrder() {
         int row = ordersTable.getSelectedRow();
         if (row < 0) { JOptionPane.showMessageDialog(this, "Select an order."); return; }

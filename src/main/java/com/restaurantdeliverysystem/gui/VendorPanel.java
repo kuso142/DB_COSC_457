@@ -11,6 +11,15 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 
+/**
+ * Vendor-facing panel for managing restaurant menu items and incoming orders.
+ *
+ * <p>Contains two sections:
+ * <ul>
+ *   <li>Left — menu item table with add, edit, and delete actions</li>
+ *   <li>Right — incoming orders table with a mark-as-ready action</li>
+ * </ul>
+ */
 public class VendorPanel extends JPanel {
 
     private final VendorDAO vendorDAO = new VendorDAO();
@@ -23,6 +32,9 @@ public class VendorPanel extends JPanel {
     private JTable ordersTable;
     private boolean initialized = false;
 
+    /**
+ * Constructs the VendorPanel and initializes all sub-panels and the vendor combo box.
+ */
     public VendorPanel() {
         setLayout(new BorderLayout(5, 5));
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -111,6 +123,10 @@ public class VendorPanel extends JPanel {
         return split;
     }
 
+    /**
+ * Refreshes the vendor combo box.
+ * Called automatically when the Restaurant tab is switched to in MainFrame.
+ */
     public void refresh() {
         refreshVendorCombo();
     }
@@ -127,6 +143,9 @@ public class VendorPanel extends JPanel {
         }
     }
 
+    /**
+ * Loads the menu items for the currently selected vendor into the menu table.
+ */
     private void loadMenu() {
         menuModel.setRowCount(0);
         Vendor v = (Vendor) cbVendor.getSelectedItem();
@@ -144,6 +163,9 @@ public class VendorPanel extends JPanel {
         }
     }
 
+    /**
+ * Loads all incoming orders for the currently selected vendor into the orders table.
+ */
     private void loadOrders() {
         ordersModel.setRowCount(0);
         Vendor v = (Vendor) cbVendor.getSelectedItem();
@@ -170,6 +192,9 @@ public class VendorPanel extends JPanel {
 
     //actions
 
+    /**
+ * Opens a dialog to collect new restaurant information and inserts the record into the database.
+ */
     private void addVendor() {
         JTextField tfName = new JTextField(15);
         JTextField tfAddr = new JTextField(20);
@@ -199,6 +224,9 @@ public class VendorPanel extends JPanel {
         }
     }
 
+    /**
+ * Deletes the currently selected vendor and their menu items from the database after confirmation.
+ */
     private void deleteVendor() {
         Vendor v = (Vendor) cbVendor.getSelectedItem();
         if (v == null)
@@ -216,6 +244,9 @@ public class VendorPanel extends JPanel {
         }
     }
 
+    /**
+ * Opens a dialog to add a new menu item to the currently selected vendor's menu.
+ */
     private void addMenuItem() {
         Vendor v = (Vendor) cbVendor.getSelectedItem();
         if (v == null) {
@@ -254,6 +285,9 @@ public class VendorPanel extends JPanel {
         }
     }
 
+    /**
+ * Opens a dialog pre-filled with the selected menu item's details and saves any changes.
+ */
     private void editMenuItem() {
         int row = menuTable.getSelectedRow();
         if (row < 0) {
@@ -297,6 +331,9 @@ public class VendorPanel extends JPanel {
         }
     }
 
+    /**
+ * Deletes the selected menu item from the database after confirmation.
+ */
     private void deleteMenuItem() {
         int row = menuTable.getSelectedRow();
         if (row < 0) {
@@ -315,7 +352,10 @@ public class VendorPanel extends JPanel {
             showError(e);
         }
     }
-
+    
+/**
+ * Updates the selected order's restaurant status to "ready", signaling it is prepared for pickup.
+ */
     private void markOrderCompleted() {
         int row = ordersTable.getSelectedRow();
         if (row < 0) {
